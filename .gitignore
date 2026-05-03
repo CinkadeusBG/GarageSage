@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+tmp/
+out-tsc/
+.angular/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Nx cache
+.nx/cache
+.nx/workspace-data
+
+# Uploads (runtime data)
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Prisma
+prisma/migrations/*.sql
+# Keep migrations in source control — remove the line above if you want that

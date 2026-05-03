@@ -1,0 +1,156 @@
+// libs/prisma/schema.prisma
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  output          = "../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector", schema: "public")]
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  role         Role      @default(USER)
+  vehicles     Vehicle[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ─── Vehicles ─────────────────────────────────────────────────────────────────
+
+model Vehicle {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  make            String
+  model           String
+  year            Int
+  vin             String?          @unique
+  licensePlate    String?
+  color           String?
+  currentMileage  Int              @default(0)
+  photoUrl        String?
+  notes           String?
+  isActive        Boolean          @default(true)
+  maintenanceLogs MaintenanceLog[]
+  fuelLogs        FuelLog[]
+  reminders       Reminder[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+// ─── Maintenance Logs ─────────────────────────────────────────────────────────
+
+model MaintenanceLog {
+  id          String    @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  date        DateTime
+  mileage     Int
+  type        String    // "Oil Change", "Tire Rotation", "Brakes", etc.
+  description String?
+  cost        Float?
+  shop        String?
+  technician  String?
+  attachments String[]  // relative paths in uploads volume
+  tags        String[]  // user-defined tags
+
+  // pgvector: 768-dim from nomic-embed-text
+  embedding   Unsupported("vector(768)")?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vehicleId])
+  @@index([date])
+  @@index([type])
+}
+
+// ─── Fuel Logs ────────────────────────────────────────────────────────────────
+
+model FuelLog {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  date         DateTime
+  mileage      Int
+  liters       Float?
+  gallons      Float?
+  pricePerUnit Float?
+  totalCost    Float?
+  station      String?
+  fullTank     Boolean  @default(true)
+  fuelType     FuelType @default(GASOLINE)
+
+  // Computed fields (stored for fast querying)
+  mpg    Float?
+  l100km Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId])
+  @@index([date])
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  E85
+  PREMIUM
+  ELECTRIC
+  HYBRID
+}
+
+// ─── Reminders ────────────────────────────────────────────────────────────────
+
+model Reminder {
+  id              String         @id @default(cuid())
+  vehicleId       String
+  vehicle         Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  category        String?        // "Oil", "Tires", "Inspection", etc.
+  intervalMileage Int?           // recur every N miles
+  intervalDays    Int?           // recur every N days
+  lastDoneMileage Int?
+  lastDoneDate    DateTime?
+  nextDueMileage  Int?
+  nextDueDate     DateTime?
+  status          ReminderStatus @default(ACTIVE)
+  priority        Priority       @default(MEDIUM)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([vehicleId])
+  @@index([status])
+}
+
+enum ReminderStatus {
+  ACTIVE
+  SNOOZED
+  COMPLETED
+  DISMISSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
