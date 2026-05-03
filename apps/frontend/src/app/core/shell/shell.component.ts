@@ -4,9 +4,11 @@ import { CommonModule }    from '@angular/common';
 import { ButtonModule }    from 'primeng/button';
 import { AvatarModule }    from 'primeng/avatar';
 import { ToastModule }     from 'primeng/toast';
+import { TooltipModule }   from 'primeng/tooltip';
 import { MessageService }  from 'primeng/api';
 import { AuthService }     from '../services/auth.service';
 import { VehicleService }  from '../services/vehicle.service';
+import { ThemeService }    from '../services/theme.service';
 
 interface NavItem {
   label: string;
@@ -19,7 +21,7 @@ interface NavItem {
   standalone: true,
   imports: [
     CommonModule, RouterOutlet, RouterLink, RouterLinkActive,
-    ButtonModule, AvatarModule, ToastModule,
+    ButtonModule, AvatarModule, ToastModule, TooltipModule,
   ],
   providers: [MessageService],
   template: `
@@ -35,7 +37,7 @@ interface NavItem {
           <p-button
             [icon]="collapsed() ? 'pi pi-angle-right' : 'pi pi-angle-left'"
             [text]="true" severity="secondary" size="small"
-            (onClick)="collapsed.update(v => !v)"
+            (onClick)="toggleCollapsed()"
           />
         </div>
 
@@ -50,13 +52,21 @@ interface NavItem {
           </a>
         </nav>
 
-        <div class="sidebar-footer" *ngIf="!collapsed()">
-          <p-avatar
-            [label]="userInitial()"
-            shape="circle" size="normal"
-            styleClass="mr-2"
+        <div class="sidebar-footer">
+          <ng-container *ngIf="!collapsed()">
+            <p-avatar
+              [label]="userInitial()"
+              shape="circle" size="normal"
+              styleClass="mr-2"
+            />
+            <span class="user-name">{{ auth.user()?.name ?? auth.user()?.email }}</span>
+          </ng-container>
+          <p-button
+            [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+            [text]="true" severity="secondary" size="small"
+            (onClick)="theme.toggle()"
+            [pTooltip]="theme.isDark() ? 'Light mode' : 'Dark mode'"
           />
-          <span class="user-name">{{ auth.user()?.name ?? auth.user()?.email }}</span>
           <p-button
             icon="pi pi-sign-out" [text]="true" severity="secondary" size="small"
             (onClick)="auth.logout()" pTooltip="Sign out"
@@ -168,12 +178,15 @@ export class ShellComponent implements OnInit {
 
   constructor(
     readonly auth: AuthService,
+    readonly theme: ThemeService,
     private readonly vehicles: VehicleService,
   ) {}
 
   ngOnInit() {
     this.vehicles.load().subscribe();
   }
+
+  toggleCollapsed() { this.collapsed.update(v => !v); }
 
   userInitial(): string {
     const u = this.auth.user();

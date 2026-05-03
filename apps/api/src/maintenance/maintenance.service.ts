@@ -103,7 +103,6 @@ export class MaintenanceService {
         where: { vehicleId: { in: vehicleIds } },
         orderBy: { date: 'desc' },
         take: 5,
-        include: { vehicle: { select: { make: true, model: true, year: true } } },
         select: {
           id: true, date: true, mileage: true, type: true, cost: true,
           vehicle: { select: { make: true, model: true, year: true } },

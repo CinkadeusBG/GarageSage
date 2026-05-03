@@ -9,8 +9,9 @@ html, body {
   padding: 0;
   font-family: var(--p-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   font-size: 16px;
-  background: var(--p-surface-50, #f8fafc);
-  color: var(--p-text-color, #1e293b);
+  background: var(--p-surface-50);
+  color: var(--p-text-color);
+  transition: background 0.2s, color 0.2s;
 }
 
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
@@ -26,6 +27,13 @@ a { color: var(--p-primary-color); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--p-surface-300); border-radius: 3px; }
+
+/* Dark mode page background — surface-50 is a raw scale that doesn't flip;
+   content-background is the semantic token that maps to surface-900 in dark mode */
+html.dark-mode body,
+html.dark-mode .main-content {
+  background: var(--p-content-background);
+}
 
 /* Utility */
 .w-full { width: 100%; }

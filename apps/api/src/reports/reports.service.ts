@@ -97,7 +97,6 @@ export class ReportsService {
         where:   { vehicleId: { in: vehicles } },
         orderBy: { date: 'desc' },
         take:    5,
-        include: { vehicle: { select: { make: true, model: true, year: true } } },
         select:  {
           id: true, date: true, type: true, cost: true, mileage: true,
           vehicle: { select: { make: true, model: true, year: true } },

@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "forwardRefChecking": false
+    "strict": false
   },
   "files": [],
   "include": [],

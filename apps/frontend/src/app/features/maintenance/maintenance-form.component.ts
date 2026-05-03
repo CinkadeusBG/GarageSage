@@ -10,7 +10,7 @@ import { DropdownModule }     from 'primeng/dropdown';
 import { ButtonModule }       from 'primeng/button';
 import { CardModule }         from 'primeng/card';
 import { MessageModule }      from 'primeng/message';
-import { ChipsModule }        from 'primeng/chips';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { VehicleService }     from '../../core/services/vehicle.service';
 
 const COMMON_TYPES = [
@@ -23,7 +23,7 @@ const COMMON_TYPES = [
   selector: 'app-maintenance-form',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, InputTextModule, InputNumberModule,
-    CalendarModule, DropdownModule, ButtonModule, CardModule, MessageModule, ChipsModule],
+    CalendarModule, DropdownModule, ButtonModule, CardModule, MessageModule, AutoCompleteModule],
   template: `
     <div class="page">
       <div class="page-header">
@@ -72,7 +72,8 @@ const COMMON_TYPES = [
           </div>
           <div class="field full-width">
             <label>Tags</label>
-            <p-chips [(ngModel)]="form.tags" placeholder="Add tag and press Enter" styleClass="w-full" />
+            <p-autoComplete [(ngModel)]="form.tags" [multiple]="true" [suggestions]="[]"
+              (completeMethod)="$event" placeholder="Add tag and press Enter" styleClass="w-full" />
           </div>
           <div class="field full-width">
             <label>Notes / Description</label>
