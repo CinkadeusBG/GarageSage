@@ -8,11 +8,12 @@ import { TagModule }      from 'primeng/tag';
 import { ToastModule }    from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { VehicleService } from '../../core/services/vehicle.service';
+import { MakeLogoComponent } from '../../core/make-logo.component';
 
 @Component({
   selector: 'app-reminders-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ButtonModule, TableModule, TagModule, ToastModule],
+  imports: [CommonModule, RouterLink, ButtonModule, TableModule, TagModule, ToastModule, MakeLogoComponent],
   providers: [MessageService],
   template: `
     <p-toast />
@@ -42,7 +43,12 @@ import { VehicleService } from '../../core/services/vehicle.service';
               <span class="task-title">{{ r.title }}</span>
               <div *ngIf="r.description" class="task-desc">{{ r.description }}</div>
             </td>
-            <td>{{ r.vehicle?.make }} {{ r.vehicle?.model }}</td>
+            <td>
+              <span class="veh-cell">
+                <app-make-logo [make]="r.vehicle?.make" size="sm" />
+                <span>{{ r.vehicle?.make }} {{ r.vehicle?.model }}<ng-container *ngIf="r.vehicle?.trim"> {{ r.vehicle.trim }}</ng-container></span>
+              </span>
+            </td>
             <td>
               <span *ngIf="r.nextDueDate" [class.overdue-text]="isOverdue(r)">
                 {{ r.nextDueDate | date:'mediumDate' }}
@@ -73,6 +79,7 @@ import { VehicleService } from '../../core/services/vehicle.service';
     .page{max-width:1100px;margin:0 auto;}
     .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
     h1{margin:0;font-size:1.5rem;font-weight:600;}
+    .veh-cell{display:flex;align-items:center;gap:0.5rem;}
     .task-title{font-weight:500;font-size:0.875rem;}
     .task-desc{font-size:0.75rem;color:var(--p-text-muted-color);}
     .overdue-text{color:var(--p-red-600);font-weight:500;}

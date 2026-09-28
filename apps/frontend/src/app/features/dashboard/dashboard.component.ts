@@ -2,88 +2,77 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule }     from '@angular/common';
 import { RouterLink }       from '@angular/router';
 import { HttpClient }       from '@angular/common/http';
-import { CardModule }       from 'primeng/card';
 import { ButtonModule }     from 'primeng/button';
 import { TagModule }        from 'primeng/tag';
 import { SkeletonModule }   from 'primeng/skeleton';
-import { ChipModule }       from 'primeng/chip';
 import { VehicleService }   from '../../core/services/vehicle.service';
-import { AuthService }      from '../../core/services/auth.service';
+import { MakeLogoComponent } from '../../core/make-logo.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CardModule, ButtonModule, TagModule, SkeletonModule, ChipModule],
+  imports: [CommonModule, RouterLink, ButtonModule, TagModule, SkeletonModule, MakeLogoComponent],
   template: `
-    <div class="dashboard">
-
-      <!-- Header -->
-      <div class="page-header">
+    <div class="dash">
+      <header class="dash-head">
         <div>
-          <h1>Dashboard</h1>
-          <p class="text-muted">Welcome back, {{ auth.user()?.name ?? auth.user()?.email }}</p>
+          <span class="kicker">Overview</span>
+          <h1>Garage</h1>
         </div>
         <p-button label="Add Vehicle" icon="pi pi-plus" routerLink="/vehicles/new" />
-      </div>
+      </header>
 
-      <!-- Summary cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon bg-blue"><i class="pi pi-car"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ vehicles.vehicles().length }}</div>
-            <div class="stat-label">Vehicles</div>
-          </div>
+      <section class="stat-grid">
+        <div class="stat stat--amber">
+          <span class="stat-kicker">Vehicles</span>
+          <span class="stat-num">{{ vehicles.vehicles().length }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-green"><i class="pi pi-dollar"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">\${{ (summary()?.ytdMaintenanceCost ?? 0) | number:'1.0-0' }}</div>
-            <div class="stat-label">Maintenance YTD</div>
-          </div>
+        <div class="stat stat--good">
+          <span class="stat-kicker">Maintenance YTD</span>
+          <span class="stat-num">\${{ (summary()?.ytdMaintenanceCost ?? 0) | number:'1.0-0' }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-amber"><i class="pi pi-bell"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ summary()?.upcomingReminders ?? 0 }}</div>
-            <div class="stat-label">Due soon</div>
-          </div>
+        <div class="stat stat--hot">
+          <span class="stat-kicker">Due soon</span>
+          <span class="stat-num">{{ summary()?.upcomingReminders ?? 0 }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-purple"><i class="pi pi-wrench"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ summary()?.ytdMaintenanceJobs ?? 0 }}</div>
-            <div class="stat-label">Services YTD</div>
-          </div>
+        <div class="stat stat--steel">
+          <span class="stat-kicker">Services YTD</span>
+          <span class="stat-num">{{ summary()?.ytdMaintenanceJobs ?? 0 }}</span>
         </div>
-      </div>
+      </section>
 
-      <div class="dashboard-grid">
-        <!-- Vehicles quick-access -->
-        <p-card header="Your Vehicles" styleClass="dashboard-card">
+      <section class="panels">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="kicker">Fleet</span>
+            <h2>Your vehicles</h2>
+          </div>
           <div *ngIf="!vehicles.vehicles().length" class="empty-state">
-            <i class="pi pi-car pi-4x"></i>
             <p>No vehicles yet.</p>
             <p-button label="Add your first vehicle" icon="pi pi-plus" routerLink="/vehicles/new" size="small" />
           </div>
           <div class="vehicle-list">
-            <a *ngFor="let v of vehicles.vehicles()" [routerLink]="['/vehicles', v.id]" class="vehicle-row">
-              <div class="vehicle-avatar" [style.background]="colorFor(v.make)">
-                {{ v.make.charAt(0) }}
-              </div>
+            <a *ngFor="let v of vehicles.ordered()" [routerLink]="['/vehicles', v.id]" class="vehicle-row" [class.parked]="v.outOfService">
+              <app-make-logo [make]="v.make" />
               <div class="vehicle-info">
-                <div class="vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</div>
-                <div class="vehicle-meta">{{ v.currentMileage | number }} mi</div>
+                <div class="vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}<span *ngIf="v.trim"> {{ v.trim }}</span></div>
+                <div class="vehicle-meta">
+                  {{ v.currentMileage | number }} mi
+                  <span *ngIf="v.outOfService"> · Out of service</span>
+                </div>
               </div>
-              <i class="pi pi-angle-right text-muted"></i>
+              <i class="pi pi-angle-right"></i>
             </a>
           </div>
-        </p-card>
+        </div>
 
-        <!-- Recent activity -->
-        <p-card header="Recent Service" styleClass="dashboard-card">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="kicker">Recent</span>
+            <h2>Service</h2>
+          </div>
           <ng-container *ngIf="loadingActivity(); else activityList">
-            <p-skeleton *ngFor="let i of [1,2,3]" height="3rem" styleClass="mb-2" />
+            <p-skeleton *ngFor="let i of [1,2,3]" height="3.2rem" styleClass="mb-2" />
           </ng-container>
           <ng-template #activityList>
             <div *ngIf="!recentActivity().length" class="empty-state">
@@ -91,116 +80,109 @@ import { AuthService }      from '../../core/services/auth.service';
               <p-button label="Log service" routerLink="/maintenance/new" size="small" />
             </div>
             <div *ngFor="let log of recentActivity()" class="activity-row">
-              <p-tag [value]="log.type" severity="info" styleClass="activity-type" />
+              <app-make-logo [make]="log.vehicle.make" size="sm" />
               <div class="activity-info">
-                <div class="activity-vehicle">{{ log.vehicle.year }} {{ log.vehicle.make }} {{ log.vehicle.model }}</div>
+                <div class="activity-vehicle">{{ log.vehicle.year }} {{ log.vehicle.make }} {{ log.vehicle.model }}<span *ngIf="log.vehicle.trim"> {{ log.vehicle.trim }}</span></div>
                 <div class="activity-meta">{{ log.date | date:'mediumDate' }} · {{ log.mileage | number }} mi</div>
               </div>
+              <p-tag [value]="log.type" severity="secondary" />
               <div *ngIf="log.cost" class="activity-cost">\${{ log.cost | number:'1.2-2' }}</div>
             </div>
           </ng-template>
-        </p-card>
-
-        <!-- AI suggestions -->
-        <p-card header="AI Suggestions" styleClass="dashboard-card ai-card">
-          <ng-container *ngIf="loadingSuggestions(); else suggestionList">
-            <p-skeleton *ngFor="let i of [1,2,3]" height="2.5rem" styleClass="mb-2" />
-          </ng-container>
-          <ng-template #suggestionList>
-            <div *ngIf="!suggestions().length" class="empty-state">
-              <i class="pi pi-sparkles"></i>
-              <p>Add vehicles and maintenance logs to get AI suggestions.</p>
-            </div>
-            <div *ngFor="let s of suggestions(); let i = index" class="suggestion-item">
-              <span class="suggestion-num">{{ i + 1 }}</span>
-              <span>{{ s }}</span>
-            </div>
-          </ng-template>
-          <div class="mt-3">
-            <p-button label="Ask AI assistant" icon="pi pi-sparkles" routerLink="/ai"
-              severity="secondary" size="small" styleClass="w-full" />
-          </div>
-        </p-card>
-      </div>
+        </div>
+      </section>
     </div>
   `,
   styles: [`
-    .dashboard { max-width: 1200px; margin: 0 auto; }
-    .page-header {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; margin-bottom: 1.5rem;
+    .dash { max-width: 1180px; margin: 0 auto; }
+    .kicker {
+      display: block; font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.35rem;
     }
-    .page-header h1 { margin: 0; font-size: 1.5rem; font-weight: 600; }
-    .text-muted { margin: 0.25rem 0 0; color: var(--p-text-muted-color); font-size: 0.875rem; }
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem; margin-bottom: 1.5rem;
+    .dash-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 1.6rem; gap: 1rem;
     }
-    .stat-card {
-      background: white; border-radius: 12px;
-      padding: 1rem; display: flex; align-items: center; gap: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    .dash-head h1 {
+      margin: 0; font-size: 3.1rem; font-weight: 800; letter-spacing: -0.045em; line-height: 0.9;
+      background: linear-gradient(180deg, var(--fg) 20%, var(--fg-3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
-    .stat-icon {
-      width: 44px; height: 44px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem; color: white; flex-shrink: 0;
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; margin-bottom: 1.4rem;
     }
-    .bg-blue { background: #3b82f6; } .bg-green { background: #22c55e; }
-    .bg-amber { background: #f59e0b; } .bg-purple { background: #8b5cf6; }
-    .stat-value { font-size: 1.4rem; font-weight: 700; }
-    .stat-label { font-size: 0.75rem; color: var(--p-text-muted-color); margin-top: 2px; }
-    .dashboard-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;
+    .stat {
+      position: relative; overflow: hidden;
+      padding: 1.05rem 1.15rem 1rem 1.25rem; border-radius: 16px;
+      background:
+        radial-gradient(circle at 90% 0%, oklch(0.82 0.14 75 / 0.16), transparent 46%),
+        linear-gradient(165deg, var(--surface-2), var(--surface));
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.05);
     }
-    .vehicle-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .stat::before {
+      content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 2px;
+    }
+    .stat--amber::before { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+    .stat--good::before { background: var(--good); box-shadow: 0 0 12px oklch(0.78 0.14 150 / 0.55); }
+    .stat--hot::before { background: var(--danger); box-shadow: 0 0 12px oklch(0.70 0.18 25 / 0.5); }
+    .stat--steel::before { background: var(--fg-2); }
+    .stat-kicker {
+      display: block; font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-3);
+    }
+    .stat-num {
+      display: block; margin-top: 0.35rem;
+      font-size: 2.35rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1;
+    }
+    .panels { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; }
+    .panel {
+      position: relative; overflow: hidden;
+      padding: 1.15rem 1.15rem 0.6rem; border-radius: 18px;
+      background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--border);
+    }
+    .panel-head { margin-bottom: 0.75rem; }
+    .panel-head h2 { margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; }
+    .vehicle-list { display: flex; flex-direction: column; }
     .vehicle-row {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.5rem; border-radius: 8px; text-decoration: none;
-      color: inherit; transition: background 0.15s;
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.7rem 0.35rem; border-top: 1px solid var(--border);
+      text-decoration: none; color: inherit;
+      transition: background 0.15s, padding 0.15s;
     }
-    .vehicle-row:hover { background: var(--p-surface-100); }
-    .vehicle-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 600; font-size: 0.875rem; flex-shrink: 0;
-    }
-    .vehicle-name { font-size: 0.875rem; font-weight: 500; }
-    .vehicle-meta { font-size: 0.75rem; color: var(--p-text-muted-color); }
+    .vehicle-row:hover { background: oklch(0.82 0.14 75 / 0.06); padding-left: 0.55rem; }
+    .vehicle-name { font-weight: 700; letter-spacing: -0.01em; }
+    .vehicle-meta { font-size: 0.82rem; color: var(--fg-3); margin-top: 0.1rem; }
     .vehicle-info { flex: 1; }
-    .activity-row { display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--p-surface-200); }
-    .activity-row:last-child { border: none; }
-    .activity-type { flex-shrink: 0; }
-    .activity-info { flex: 1; }
-    .activity-vehicle { font-size: 0.8rem; font-weight: 500; }
-    .activity-meta { font-size: 0.75rem; color: var(--p-text-muted-color); }
-    .activity-cost { font-size: 0.875rem; font-weight: 500; color: var(--p-green-600); }
-    .suggestion-item {
-      display: flex; gap: 0.75rem; align-items: flex-start;
-      padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-200);
-      font-size: 0.875rem;
+    .vehicle-row .pi { color: var(--fg-3); }
+    .vehicle-row.parked { opacity: 0.42; }
+    .activity-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 0; border-top: 1px solid var(--border);
     }
-    .suggestion-item:last-child { border: none; }
-    .suggestion-num {
-      background: var(--p-primary-500); color: white;
-      width: 20px; height: 20px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.7rem; flex-shrink: 0; margin-top: 1px;
+    .activity-info { flex: 1; min-width: 0; }
+    .activity-vehicle { font-weight: 700; }
+    .activity-meta { font-size: 0.82rem; color: var(--fg-3); margin-top: 0.1rem; }
+    .activity-cost { font-weight: 800; color: var(--good); letter-spacing: -0.02em; }
+    .empty-state { text-align: center; padding: 1.5rem 0.5rem 1.2rem; color: var(--fg-3); }
+    @media (max-width: 900px) {
+      .stat-grid, .panels { grid-template-columns: 1fr 1fr; }
+      .dash-head h1 { font-size: 2.4rem; }
     }
-    .empty-state { text-align: center; padding: 1rem; color: var(--p-text-muted-color); font-size: 0.875rem; }
-    .dashboard-card { height: 100%; }
+    @media (max-width: 640px) {
+      .stat-grid, .panels { grid-template-columns: 1fr; }
+    }
   `],
 })
 export class DashboardComponent implements OnInit {
   summary           = signal<any>(null);
   recentActivity    = signal<any[]>([]);
-  suggestions       = signal<string[]>([]);
   loadingActivity   = signal(true);
-  loadingSuggestions = signal(true);
 
   constructor(
     readonly vehicles: VehicleService,
-    readonly auth: AuthService,
     private readonly http: HttpClient,
   ) {}
 
@@ -210,17 +192,5 @@ export class DashboardComponent implements OnInit {
       this.recentActivity.set(data.recentActivity ?? []);
       this.loadingActivity.set(false);
     });
-
-    this.http.get<{ suggestions: string[] }>('/api/ai/suggestions').subscribe({
-      next:  r => { this.suggestions.set(r.suggestions); this.loadingSuggestions.set(false); },
-      error: () => this.loadingSuggestions.set(false),
-    });
-  }
-
-  colorFor(make: string): string {
-    const colors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#06b6d4'];
-    let hash = 0;
-    for (const c of make) hash = (hash * 31 + c.charCodeAt(0)) & 0xffff;
-    return colors[hash % colors.length];
   }
 }

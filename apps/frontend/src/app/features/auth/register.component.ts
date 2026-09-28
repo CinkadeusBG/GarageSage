@@ -51,7 +51,7 @@ import { AuthService }          from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .auth-page { min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--p-surface-100); }
+    .auth-page { min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--fg); }
     .auth-card { width:100%;max-width:400px; }
     .auth-logo { text-align:center;padding:1.5rem 1.5rem 0; }
     .field label { display:block;font-size:0.875rem;margin-bottom:0.35rem; }

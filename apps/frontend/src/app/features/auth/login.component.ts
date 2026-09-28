@@ -58,7 +58,7 @@ import { AuthService }          from '../../core/services/auth.service';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--p-surface-100);
+      background: var(--bg);
     }
     .auth-card { width: 100%; max-width: 400px; }
     .auth-logo { text-align: center; padding: 1.5rem 1.5rem 0; }

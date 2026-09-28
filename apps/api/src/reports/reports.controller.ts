@@ -34,17 +34,6 @@ export class ReportsController {
     return this.svc.costByType(req.user.id, vehicleId);
   }
 
-  @Get('fuel-trend')
-  @ApiQuery({ name: 'vehicleId', required: false })
-  @ApiQuery({ name: 'limit',     required: false })
-  fuelTrend(
-    @Request() req,
-    @Query('vehicleId') vehicleId?: string,
-    @Query('limit')     limit?: string,
-  ) {
-    return this.svc.fuelTrend(req.user.id, vehicleId, limit ? +limit : 20);
-  }
-
   @Get('export/maintenance.csv')
   @ApiOperation({ summary: 'Download full maintenance history as CSV' })
   @ApiQuery({ name: 'vehicleId', required: false })

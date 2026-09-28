@@ -1,7 +1,5 @@
-version: '3.9'
-
 # Development override — run with:
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db ollama
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
 # Then run api and frontend locally with: npm run dev
 
 services:
@@ -10,7 +8,3 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: devpassword
-
-  ollama:
-    ports:
-      - "11434:11434"

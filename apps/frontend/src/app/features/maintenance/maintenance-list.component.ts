@@ -8,11 +8,12 @@ import { TableModule }    from 'primeng/table';
 import { TagModule }      from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
 import { VehicleService } from '../../core/services/vehicle.service';
+import { MakeLogoComponent } from '../../core/make-logo.component';
 
 @Component({
   selector: 'app-maintenance-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ButtonModule, TableModule, TagModule, DropdownModule],
+  imports: [CommonModule, RouterLink, FormsModule, ButtonModule, TableModule, TagModule, DropdownModule, MakeLogoComponent],
   template: `
     <div class="page">
       <div class="page-header">
@@ -49,7 +50,10 @@ import { VehicleService } from '../../core/services/vehicle.service';
           <tr>
             <td>{{ log.date | date:'mediumDate' }}</td>
             <td *ngIf="!selectedVehicleId">
-              {{ log.vehicle?.year }} {{ log.vehicle?.make }} {{ log.vehicle?.model }}
+              <span class="veh-cell">
+                <app-make-logo [make]="log.vehicle?.make" size="sm" />
+                <span>{{ log.vehicle?.year }} {{ log.vehicle?.make }} {{ log.vehicle?.model }}<ng-container *ngIf="log.vehicle?.trim"> {{ log.vehicle.trim }}</ng-container></span>
+              </span>
             </td>
             <td><p-tag [value]="log.type" severity="info" /></td>
             <td>{{ log.mileage | number }} mi</td>
@@ -72,6 +76,7 @@ import { VehicleService } from '../../core/services/vehicle.service';
     .page-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem; }
     h1 { margin:0;font-size:1.5rem;font-weight:600; }
     .filters { max-width: 280px; }
+    .veh-cell { display:flex; align-items:center; gap:0.5rem; }
   `],
 })
 export class MaintenanceListComponent implements OnInit {
@@ -81,8 +86,8 @@ export class MaintenanceListComponent implements OnInit {
 
   vehicleOptions = () => [
     { label: 'All vehicles', value: null },
-    ...this.vehicleSvc.vehicles().map(v => ({
-      label: `${v.year} ${v.make} ${v.model}`,
+    ...this.vehicleSvc.byYear().map(v => ({
+      label: this.vehicleSvc.displayName(v),
       value: v.id,
     })),
   ];

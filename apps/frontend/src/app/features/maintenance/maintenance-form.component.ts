@@ -64,11 +64,7 @@ const COMMON_TYPES = [
           </div>
           <div class="field">
             <label>Shop / Dealer</label>
-            <input pInputText [(ngModel)]="form.shop" placeholder="Quick Lube" class="w-full" />
-          </div>
-          <div class="field">
-            <label>Technician</label>
-            <input pInputText [(ngModel)]="form.technician" placeholder="Name" class="w-full" />
+            <input pInputText [(ngModel)]="form.shop" placeholder="Self Perform" class="w-full" />
           </div>
           <div class="field full-width">
             <label>Tags</label>
@@ -110,13 +106,13 @@ export class MaintenanceFormComponent implements OnInit {
 
   form: any = {
     vehicleId: null, type: null, date: new Date(),
-    mileage: null, cost: null, shop: null,
-    technician: null, description: null, tags: [],
+    mileage: null, cost: null, shop: 'Self Perform',
+    description: null, tags: [],
   };
 
   get vehicleOptions() {
-    return this.vehicleSvc.vehicles().map(v => ({
-      label: `${v.year} ${v.make} ${v.model}`,
+    return this.vehicleSvc.byYear().map(v => ({
+      label: this.vehicleSvc.displayName(v),
       value: v.id,
     }));
   }
@@ -147,6 +143,7 @@ export class MaintenanceFormComponent implements OnInit {
     }
     this.saving.set(true); this.error.set(null);
     const payload = { ...this.form, date: this.form.date.toISOString() };
+    delete payload.technician;
     const id = this.route.snapshot.paramMap.get('id');
     const req = id
       ? this.http.put<any>(`/api/maintenance/${id}`, payload)

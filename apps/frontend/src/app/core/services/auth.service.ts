@@ -17,6 +17,12 @@ interface AuthResponse {
 }
 
 const TOKEN_KEY = 'gs_token';
+const MONTH_SECONDS = 60 * 60 * 24 * 30;
+
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -41,13 +47,13 @@ export class AuthService {
   }
 
   logout() {
-    localStorage.removeItem(TOKEN_KEY);
+    this.clearToken();
     this._user.set(null);
     this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY) ?? readCookie(TOKEN_KEY);
   }
 
   refreshProfile() {
@@ -57,27 +63,44 @@ export class AuthService {
   }
 
   private handleAuth(res: AuthResponse) {
-    localStorage.setItem(TOKEN_KEY, res.access_token);
+    this.persistToken(res.access_token);
     this._user.set(res.user);
   }
 
   private loadStoredUser() {
     const token = this.getToken();
     if (!token) return;
-    // Decode JWT payload (no library needed for display purposes)
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.exp * 1000 < Date.now()) {
-        localStorage.removeItem(TOKEN_KEY);
+        this.clearToken();
         return;
       }
-      // Fetch fresh profile
+      // Restore into both stores so a later page load still finds it.
+      this.persistToken(token);
+      // Set user immediately from the token so route guards pass before /api/auth/me returns.
+      this._user.set({
+        id:        payload.sub,
+        email:     payload.email,
+        name:      payload.name ?? '',
+        role:      payload.role ?? 'USER',
+        createdAt: '',
+      });
       this.http.get<User>('/api/auth/me').subscribe({
-        next:  user => this._user.set(user),
-        error: ()   => localStorage.removeItem(TOKEN_KEY),
+        next: user => this._user.set(user),
       });
     } catch {
-      localStorage.removeItem(TOKEN_KEY);
+      this.clearToken();
     }
+  }
+
+  private persistToken(token: string) {
+    localStorage.setItem(TOKEN_KEY, token);
+    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; Max-Age=${MONTH_SECONDS}; Path=/; SameSite=Lax`;
+  }
+
+  private clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    document.cookie = `${TOKEN_KEY}=; Max-Age=0; Path=/; SameSite=Lax`;
   }
 }

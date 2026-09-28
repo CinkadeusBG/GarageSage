@@ -1,15 +1,13 @@
 // libs/prisma/schema.prisma
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
-  output          = "../../node_modules/.prisma/client"
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pgvector(map: "vector", schema: "public")]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ─── Users & Auth ─────────────────────────────────────────────────────────────
@@ -38,6 +36,7 @@ model Vehicle {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   make            String
   model           String
+  trim            String?
   year            Int
   vin             String?          @unique
   licensePlate    String?
@@ -45,9 +44,10 @@ model Vehicle {
   currentMileage  Int              @default(0)
   photoUrl        String?
   notes           String?
+  specs           Json?            // oil, tires, filters, spark, serviceNotes
   isActive        Boolean          @default(true)
+  outOfService    Boolean          @default(false)
   maintenanceLogs MaintenanceLog[]
-  fuelLogs        FuelLog[]
   reminders       Reminder[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -71,50 +71,12 @@ model MaintenanceLog {
   attachments String[]  // relative paths in uploads volume
   tags        String[]  // user-defined tags
 
-  // pgvector: 768-dim from nomic-embed-text
-  embedding   Unsupported("vector(768)")?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([vehicleId])
   @@index([date])
   @@index([type])
-}
-
-// ─── Fuel Logs ────────────────────────────────────────────────────────────────
-
-model FuelLog {
-  id           String   @id @default(cuid())
-  vehicleId    String
-  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  date         DateTime
-  mileage      Int
-  liters       Float?
-  gallons      Float?
-  pricePerUnit Float?
-  totalCost    Float?
-  station      String?
-  fullTank     Boolean  @default(true)
-  fuelType     FuelType @default(GASOLINE)
-
-  // Computed fields (stored for fast querying)
-  mpg    Float?
-  l100km Float?
-
-  createdAt DateTime @default(now())
-
-  @@index([vehicleId])
-  @@index([date])
-}
-
-enum FuelType {
-  GASOLINE
-  DIESEL
-  E85
-  PREMIUM
-  ELECTRIC
-  HYBRID
 }
 
 // ─── Reminders ────────────────────────────────────────────────────────────────

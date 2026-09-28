@@ -28,7 +28,7 @@ export class RemindersService {
       },
       orderBy:  [{ priority: 'desc' }, { nextDueDate: 'asc' }],
       take:     10,
-      include:  { vehicle: { select: { make: true, model: true, year: true } } },
+      include:  { vehicle: { select: { make: true, model: true, trim: true, year: true } } },
     });
   }
 

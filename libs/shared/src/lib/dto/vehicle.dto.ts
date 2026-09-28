@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, Min, Max, IsBoolean } from 'class-validator';
+import { IsString, IsInt, IsOptional, Min, Max, IsBoolean, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateVehicleDto {
@@ -7,6 +7,10 @@ export class CreateVehicleDto {
 
   @IsString()
   model: string;
+
+  @IsOptional()
+  @IsString()
+  trim?: string;
 
   @IsInt()
   @Min(1886)
@@ -35,6 +39,15 @@ export class CreateVehicleDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  outOfService?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  specs?: any;
 }
 
 export class UpdateVehicleDto {
@@ -45,6 +58,10 @@ export class UpdateVehicleDto {
   @IsOptional()
   @IsString()
   model?: string;
+
+  @IsOptional()
+  @IsString()
+  trim?: string;
 
   @IsOptional()
   @IsInt()
@@ -77,4 +94,13 @@ export class UpdateVehicleDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  outOfService?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  specs?: any;
 }

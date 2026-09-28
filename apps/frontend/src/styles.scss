@@ -2,42 +2,95 @@
 @import "primeicons/primeicons.css";
 @import "primeflex/primeflex.css";
 
+/* ── GarageSage design-system tokens (amber/dark, matches claude.ai/design spec) ── */
+:root {
+  --bg:           oklch(0.16 0.006 260);
+  --bg-2:         oklch(0.20 0.007 260);
+  --surface:      oklch(0.22 0.008 260);
+  --surface-2:    oklch(0.26 0.008 260);
+  --border:       oklch(0.32 0.01  260);
+  --border-strong:oklch(0.42 0.012 260);
+  --fg:           oklch(0.97 0.005  90);
+  --fg-2:         oklch(0.78 0.01   90);
+  --fg-3:         oklch(0.58 0.01   90);
+  --accent:       oklch(0.82 0.14   75);
+  --accent-2:     oklch(0.72 0.16   60);
+  --accent-glow:  oklch(0.82 0.14 75 / 0.55);
+  --danger:       oklch(0.70 0.18   25);
+  --good:         oklch(0.78 0.14  150);
+  --grid-line:    oklch(1 0 0 / 0.04);
+}
+
+/* Archivo as primary app font */
+body { font-family: 'Archivo', system-ui, sans-serif; }
+
+/* Oil-overdue blink */
+@keyframes odoBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.gs-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.gs-upper { text-transform: uppercase; letter-spacing: 0.08em; }
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   padding: 0;
   font-family: var(--p-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-  font-size: 16px;
-  background: var(--p-surface-50);
-  color: var(--p-text-color);
-  transition: background 0.2s, color 0.2s;
+  font-size: 18px;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
 
 a { color: var(--p-primary-color); }
 
-/* PrimeNG global overrides */
-.p-card { border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08) !important; }
+/* PrimeNG global overrides — keep cards on the dark surface, not the light default */
+.p-card {
+  border-radius: 12px;
+  background: var(--surface) !important;
+  color: var(--fg) !important;
+  border: 1px solid var(--border);
+  box-shadow: none !important;
+}
+.p-card .p-card-title { color: var(--fg) !important; }
+.p-card .p-card-subtitle,
+.p-card .p-card-content { color: var(--fg-2) !important; }
+.p-datatable,
+.p-datatable .p-datatable-header,
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+  background: var(--surface) !important;
+  color: var(--fg) !important;
+  border-color: var(--border) !important;
+}
 .p-button { border-radius: 8px; }
-.p-inputtext { border-radius: 8px; }
+.p-inputtext, .p-textarea, .p-select, .p-dropdown {
+  border-radius: 8px;
+  background: var(--surface-2) !important;
+  color: var(--fg) !important;
+  border-color: var(--border) !important;
+}
+input::placeholder,
+textarea::placeholder,
+.p-inputtext::placeholder,
+.p-dropdown-label.p-placeholder,
+.p-placeholder {
+  color: var(--fg-3) !important;
+  opacity: 0.38 !important;
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--p-surface-300); border-radius: 3px; }
-
-/* Dark mode page background — surface-50 is a raw scale that doesn't flip;
-   content-background is the semantic token that maps to surface-900 in dark mode */
-html.dark-mode body,
-html.dark-mode .main-content {
-  background: var(--p-content-background);
-}
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 
 /* Utility */
 .w-full { width: 100%; }
-.text-muted { color: var(--p-text-muted-color); }
+.text-muted { color: var(--fg-3); }
 .mt-3 { margin-top: 0.75rem; }
 .mb-3 { margin-bottom: 0.75rem; }
 .mb-2 { margin-bottom: 0.5rem; }

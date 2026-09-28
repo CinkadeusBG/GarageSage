@@ -1,0 +1,1 @@
+ALTER TABLE "Vehicle" ADD COLUMN "outOfService" BOOLEAN NOT NULL DEFAULT false;

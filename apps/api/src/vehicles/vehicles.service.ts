@@ -12,7 +12,7 @@ export class VehiclesService {
       orderBy: { updatedAt: 'desc' },
       include: {
         _count: {
-          select: { maintenanceLogs: true, fuelLogs: true, reminders: true },
+          select: { maintenanceLogs: true, reminders: true },
         },
       },
     });
@@ -23,7 +23,7 @@ export class VehiclesService {
       where: { id, userId },
       include: {
         reminders: { where: { status: 'ACTIVE' }, orderBy: { nextDueDate: 'asc' }, take: 5 },
-        _count: { select: { maintenanceLogs: true, fuelLogs: true } },
+        _count: { select: { maintenanceLogs: true, reminders: true } },
       },
     });
     if (!vehicle) throw new NotFoundException(`Vehicle ${id} not found`);

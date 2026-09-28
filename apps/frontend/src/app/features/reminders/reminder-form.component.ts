@@ -75,7 +75,7 @@ export class ReminderFormComponent implements OnInit {
   form: any = { vehicleId: null, title: '', description: '', intervalMileage: null, intervalDays: null, lastDoneMileage: null, priority: 'MEDIUM' };
 
   get vehicleOptions() {
-    return this.vehicleSvc.vehicles().map(v => ({ label: `${v.year} ${v.make} ${v.model}`, value: v.id }));
+    return this.vehicleSvc.byYear().map(v => ({ label: this.vehicleSvc.displayName(v), value: v.id }));
   }
 
   constructor(private http: HttpClient, private vehicleSvc: VehicleService, private router: Router, private route: ActivatedRoute) {}

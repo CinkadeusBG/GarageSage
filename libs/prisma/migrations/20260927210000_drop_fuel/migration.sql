@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS "FuelLog";
+
+DROP TYPE IF EXISTS "FuelType";

@@ -38,11 +38,6 @@ import { VehicleService } from '../../core/services/vehicle.service';
         <p-card header="Cost by service type">
           <p-chart type="doughnut" [data]="typeChartData()" [options]="doughnutOptions" height="260px" />
         </p-card>
-
-        <!-- Fuel efficiency line chart -->
-        <p-card header="Fuel efficiency trend" styleClass="full-width-card">
-          <p-chart type="line" [data]="fuelChartData()" [options]="lineOptions" height="220px" />
-        </p-card>
       </div>
     </div>
   `,
@@ -52,14 +47,12 @@ import { VehicleService } from '../../core/services/vehicle.service';
     h1{margin:0;font-size:1.5rem;font-weight:600;}
     .header-controls{display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
     .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-    :host ::ng-deep .full-width-card{grid-column:1/-1;}
     @media(max-width:700px){.charts-grid{grid-template-columns:1fr;}}
   `],
 })
 export class ReportsComponent implements OnInit {
   monthlyChartData = signal<any>({ labels: [], datasets: [] });
   typeChartData    = signal<any>({ labels: [], datasets: [] });
-  fuelChartData    = signal<any>({ labels: [], datasets: [] });
   selectedVehicleId: string | null = null;
   selectedYear = new Date().getFullYear();
 
@@ -67,14 +60,24 @@ export class ReportsComponent implements OnInit {
   get vehicleOptions() {
     return [
       { label: 'All vehicles', value: null },
-      ...this.vehicleSvc.vehicles().map(v => ({ label: `${v.year} ${v.make} ${v.model}`, value: v.id })),
+      ...this.vehicleSvc.byYear().map(v => ({ label: this.vehicleSvc.displayName(v), value: v.id })),
     ];
   }
 
-  barOptions      = { responsive: true, plugins: { legend: { display: false } } };
-  doughnutOptions = { responsive: true, plugins: { legend: { position: 'right' } } };
-  lineOptions     = { responsive: true, plugins: { legend: { display: false } },
-    scales: { y: { title: { display: true, text: 'MPG' } } } };
+  private readonly axis = {
+    ticks: { color: '#c8c4b8' },
+    grid:  { color: 'rgba(255,255,255,0.08)' },
+    title: { color: '#c8c4b8' },
+  };
+  barOptions = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { x: this.axis, y: this.axis },
+  };
+  doughnutOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'right', labels: { color: '#f4f1e8' } } },
+  };
 
   CHART_COLORS = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#06b6d4','#f97316'];
 
@@ -98,14 +101,6 @@ export class ReportsComponent implements OnInit {
       this.typeChartData.set({
         labels:   data.map(d => d.type),
         datasets: [{ data: data.map(d => d._sum.cost ?? 0), backgroundColor: this.CHART_COLORS }],
-      });
-    });
-
-    this.http.get<any[]>(`/api/reports/fuel-trend${vid ? '?' + vid.slice(1) : ''}`).subscribe(data => {
-      this.fuelChartData.set({
-        labels:   data.map(d => new Date(d.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })),
-        datasets: [{ label: 'MPG', data: data.map(d => d.mpg ?? null),
-          borderColor: '#10b981', tension: 0.3, fill: false, pointRadius: 3 }],
       });
     });
   }

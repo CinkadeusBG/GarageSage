@@ -8,7 +8,6 @@ import { TooltipModule }   from 'primeng/tooltip';
 import { MessageService }  from 'primeng/api';
 import { AuthService }     from '../services/auth.service';
 import { VehicleService }  from '../services/vehicle.service';
-import { ThemeService }    from '../services/theme.service';
 
 interface NavItem {
   label: string;
@@ -62,12 +61,6 @@ interface NavItem {
             <span class="user-name">{{ auth.user()?.name ?? auth.user()?.email }}</span>
           </ng-container>
           <p-button
-            [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
-            [text]="true" severity="secondary" size="small"
-            (onClick)="theme.toggle()"
-            [pTooltip]="theme.isDark() ? 'Light mode' : 'Dark mode'"
-          />
-          <p-button
             icon="pi pi-sign-out" [text]="true" severity="secondary" size="small"
             (onClick)="auth.logout()" pTooltip="Sign out"
           />
@@ -89,8 +82,8 @@ interface NavItem {
     }
     .sidebar {
       width: 220px;
-      background: var(--p-surface-900);
-      color: var(--p-surface-0);
+      background: var(--bg-2);
+      color: var(--fg);
       display: flex;
       flex-direction: column;
       transition: width 0.2s ease;
@@ -102,7 +95,7 @@ interface NavItem {
       align-items: center;
       justify-content: space-between;
       padding: 1rem 0.75rem 0.5rem;
-      border-bottom: 1px solid var(--p-surface-700);
+      border-bottom: 1px solid var(--border);
       min-height: 56px;
     }
     .logo {
@@ -119,20 +112,36 @@ interface NavItem {
       overflow-y: auto;
     }
     .nav-item {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 0.75rem;
       padding: 0.65rem 1rem;
-      color: var(--p-surface-300);
+      color: var(--fg-2);
       text-decoration: none;
       border-radius: 6px;
       margin: 2px 6px;
       transition: background 0.15s, color 0.15s;
       white-space: nowrap;
     }
-    .nav-item:hover, .nav-item.active {
-      background: var(--p-primary-600);
-      color: white;
+    .nav-item:hover {
+      background: oklch(1 0 0 / 0.04);
+      color: var(--fg);
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, oklch(0.82 0.14 75 / 0.16), transparent 78%);
+      color: var(--accent);
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 2px;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
     }
     .nav-label { font-size: 0.875rem; }
     .sidebar-footer {
@@ -140,13 +149,13 @@ interface NavItem {
       align-items: center;
       gap: 0.5rem;
       padding: 0.75rem;
-      border-top: 1px solid var(--p-surface-700);
+      border-top: 1px solid var(--border);
       min-height: 56px;
     }
     .user-name {
       flex: 1;
       font-size: 0.8rem;
-      color: var(--p-surface-300);
+      color: var(--fg-2);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -154,7 +163,7 @@ interface NavItem {
     .main-content {
       flex: 1;
       overflow-y: auto;
-      background: var(--p-surface-50);
+      background: var(--bg);
       padding: 1.5rem;
     }
     @media (max-width: 768px) {
@@ -170,15 +179,12 @@ export class ShellComponent implements OnInit {
     { label: 'Dashboard',    icon: 'pi-gauge',       route: '/dashboard'   },
     { label: 'Vehicles',     icon: 'pi-car',         route: '/vehicles'    },
     { label: 'Maintenance',  icon: 'pi-wrench',      route: '/maintenance' },
-    { label: 'Fuel',         icon: 'pi-database',    route: '/fuel'        },
     { label: 'Reminders',    icon: 'pi-bell',        route: '/reminders'   },
     { label: 'Reports',      icon: 'pi-chart-bar',   route: '/reports'     },
-    { label: 'AI Assistant', icon: 'pi-sparkles',    route: '/ai'          },
   ];
 
   constructor(
     readonly auth: AuthService,
-    readonly theme: ThemeService,
     private readonly vehicles: VehicleService,
   ) {}
 

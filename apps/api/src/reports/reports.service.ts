@@ -49,17 +49,6 @@ export class ReportsService {
     });
   }
 
-  // Fuel efficiency trend (last N fill-ups)
-  async fuelTrend(userId: string, vehicleId?: string, limit = 20) {
-    const vehicles = await this.userVehicleIds(userId, vehicleId);
-    return this.prisma.fuelLog.findMany({
-      where:   { vehicleId: { in: vehicles }, mpg: { not: null } },
-      orderBy: { date: 'asc' },
-      take:    limit,
-      select:  { date: true, mileage: true, mpg: true, l100km: true, totalCost: true },
-    });
-  }
-
   // Full dashboard summary
   async dashboardSummary(userId: string) {
     const vehicles = await this.userVehicleIds(userId);
@@ -68,7 +57,6 @@ export class ReportsService {
 
     const [
       totalMaintenanceCost,
-      totalFuelCost,
       maintenanceCount,
       upcomingReminders,
       recentActivity,
@@ -76,10 +64,6 @@ export class ReportsService {
       this.prisma.maintenanceLog.aggregate({
         where: { vehicleId: { in: vehicles }, date: { gte: yearStart } },
         _sum:  { cost: true },
-      }),
-      this.prisma.fuelLog.aggregate({
-        where: { vehicleId: { in: vehicles }, date: { gte: yearStart } },
-        _sum:  { totalCost: true },
       }),
       this.prisma.maintenanceLog.count({
         where: { vehicleId: { in: vehicles }, date: { gte: yearStart } },
@@ -99,14 +83,13 @@ export class ReportsService {
         take:    5,
         select:  {
           id: true, date: true, type: true, cost: true, mileage: true,
-          vehicle: { select: { make: true, model: true, year: true } },
+          vehicle: { select: { make: true, model: true, trim: true, year: true } },
         },
       }),
     ]);
 
     return {
       ytdMaintenanceCost: totalMaintenanceCost._sum.cost  ?? 0,
-      ytdFuelCost:        totalFuelCost._sum.totalCost     ?? 0,
       ytdMaintenanceJobs: maintenanceCount,
       upcomingReminders,
       recentActivity,
@@ -119,7 +102,7 @@ export class ReportsService {
     const logs     = await this.prisma.maintenanceLog.findMany({
       where:   { vehicleId: { in: vehicles } },
       orderBy: { date: 'desc' },
-      include: { vehicle: { select: { make: true, model: true, year: true } } },
+      include: { vehicle: { select: { make: true, model: true, trim: true, year: true } } },
     });
 
     const csv = createObjectCsvStringifier({
@@ -137,7 +120,7 @@ export class ReportsService {
 
     const records = logs.map(l => ({
       date:        l.date.toISOString().slice(0, 10),
-      vehicle:     `${l.vehicle.year} ${l.vehicle.make} ${l.vehicle.model}`,
+      vehicle:     `${l.vehicle.year} ${l.vehicle.make} ${l.vehicle.model}${l.vehicle.trim ? ' ' + l.vehicle.trim : ''}`,
       mileage:     l.mileage,
       type:        l.type,
       description: l.description ?? '',

@@ -1,14 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@garagesage/prisma';
 import { CreateMaintenanceLogDto, UpdateMaintenanceLogDto } from '@garagesage/shared';
-import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class MaintenanceService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly ai:     AiService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   findAll(vehicleId: string, userId: string) {
     return this.prisma.maintenanceLog.findMany({
@@ -52,24 +48,18 @@ export class MaintenanceService {
       });
     }
 
-    // Index for AI RAG in background (don't await to keep response fast)
-    this.ai.indexMaintenanceLog(log.id).catch(() => {});
-
     return log;
   }
 
   async update(id: string, dto: UpdateMaintenanceLogDto, userId: string) {
-    const log = await this.findOne(id, userId);
-    const updated = await this.prisma.maintenanceLog.update({
+    await this.findOne(id, userId);
+    return this.prisma.maintenanceLog.update({
       where: { id },
       data: {
         ...dto,
         ...(dto.date ? { date: new Date(dto.date) } : {}),
       },
     });
-    // Re-index
-    this.ai.indexMaintenanceLog(log.id).catch(() => {});
-    return updated;
   }
 
   async remove(id: string, userId: string) {
@@ -105,7 +95,7 @@ export class MaintenanceService {
         take: 5,
         select: {
           id: true, date: true, mileage: true, type: true, cost: true,
-          vehicle: { select: { make: true, model: true, year: true } },
+          vehicle: { select: { make: true, model: true, trim: true, year: true } },
         },
       }),
     ]);

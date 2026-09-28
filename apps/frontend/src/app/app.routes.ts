@@ -32,20 +32,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/maintenance/maintenance.routes').then(m => m.MAINTENANCE_ROUTES),
       },
       {
-        path: 'fuel',
-        loadChildren: () => import('./features/fuel/fuel.routes').then(m => m.FUEL_ROUTES),
-      },
-      {
         path: 'reminders',
         loadChildren: () => import('./features/reminders/reminders.routes').then(m => m.REMINDERS_ROUTES),
       },
       {
         path: 'reports',
         loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent),
-      },
-      {
-        path: 'ai',
-        loadComponent: () => import('./features/ai-chat/ai-chat.component').then(m => m.AiChatComponent),
       },
     ],
   },
